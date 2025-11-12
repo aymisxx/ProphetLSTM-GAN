@@ -18,7 +18,7 @@ ProphetLSTM-GAN is an unsupervised anomaly detection framework for liquid rocket
 
 This project is inspired by foundational research in adversarial time-series anomaly detection:
 
-- **MAD-GAN (Li et al., 2019)** — multivariate anomaly detection using LSTM-based Generator + Discriminator.
+- **MAD-GAN (Li et al., 2019)** — multivariate anomaly detection using LSTM-based Generator and Discriminator.
 - **LSTM-GAN for Liquid Rocket Engines (Deng et al., 2022)** — adversarial learning applied to propulsion telemetry.
 - **VAE-GAN Time-Series Anomaly Detection (Niu et al., 2020)** — reconstruction-based anomaly scoring improvements.
 

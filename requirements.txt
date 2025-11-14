@@ -1,0 +1,14 @@
+numpy
+pandas
+matplotlib
+scikit-learn
+scipy
+
+torch
+torchvision
+torchaudio
+
+prophet
+
+tqdm
+joblib

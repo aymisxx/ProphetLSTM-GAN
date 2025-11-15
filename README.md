@@ -54,7 +54,7 @@ ProphetLSTM-GAN/
 │   │
 │   └── processed/
 │
-├── models/
+├── models/                        # D & G SETUPS
 └── results/
 ```
 
@@ -108,3 +108,4 @@ MIT License
 ---
 
 # Condition: UNDER CONSTRUCTION.
+

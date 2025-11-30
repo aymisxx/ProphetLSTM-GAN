@@ -66,21 +66,7 @@ ProphetLSTM-GAN/
 pip install -r requirements.txt
 ```
 
----
-
-## Training Example
-
-```bash
-python -m src.train --data ./data/processed --epochs 50 --batch 64
-```
-
----
-
-## Inference Example
-
-```bash
-python -m src.infer --data ./data/test --ckpt ./checkpoints/best.pt
-```
+Start Jupyter Notebook and open the notebooks one-by-one.
 
 ---
 
@@ -109,9 +95,7 @@ python -m src.infer --data ./data/test --ckpt ./checkpoints/best.pt
 
 ---
 
-### Detailed Results Section
-
-## Evaluation Results
+## Detailed Results Section
 
 ### 1. LSTM–GAN DR-Score Performance
 The DR-score captures short-window anomalous behavior using reconstruction error and discriminator realism.
@@ -126,7 +110,6 @@ The DR-score captures short-window anomalous behavior using reconstruction error
 
 This detector is extremely conservative (almost zero false alarms) but catches high-severity anomalies reliably.
 
----
 
 ### 2. Trend-Residual Score (EMA-Based)
 EMA trend residual captures slow drifts that GAN alone cannot detect.
@@ -134,7 +117,6 @@ EMA trend residual captures slow drifts that GAN alone cannot detect.
 - **Smooth behavior in normal windows**
 - **Stronger response around drift-induced anomalies**
 
----
 
 ### 3. HybridScore (DR + Trend Residual)
 Combining short-term and long-term anomaly cues improves separability.
@@ -153,15 +135,11 @@ Improvement highlights:
 - **Recall improved from 3.88% → 4.09%**  
 - **Still extremely low FP rate (~0.01%)**
 
----
-
 ### 4. Timeline Behavior
 - DR-score shows sharp spikes for high-severity anomalies  
 - Hybrid score captures both sharp spikes *and* slow drifts  
 - Threshold lines cleanly separate normal vs anomaly behavior  
 - Visual confirmation of increase in true positive detection  
-
----
 
 ### Final Interpretation
 The hybrid pipeline significantly enhances anomaly separability without compromising stability, delivering a more expressive unsupervised FDD system than DR-score alone.
@@ -184,6 +162,3 @@ The hybrid pipeline significantly enhances anomaly separability without compromi
 MIT License
 
 ---
-
-# Condition: UNDER CONSTRUCTION.
-

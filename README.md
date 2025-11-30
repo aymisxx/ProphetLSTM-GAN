@@ -38,7 +38,7 @@ This shifts the project from a model reproduction to an **engineering-focused pr
 
 ---
 
-## Repository Structure (Tentative)
+## Repository Structure
 
 ```
 ProphetLSTM-GAN/
@@ -81,7 +81,7 @@ Start Jupyter Notebook and open the notebooks one-by-one.
 
 ## Results Overview
 
-| Model                     | AUC     | F1      | TP | FP | FN   | TN      |
+| Model                     | AUC     |    F1   | TP | FP |  FN  |   TN    |
 |---------------------------|---------|---------|----|----|------|---------|
 | DR-Score (GAN)            | 0.6593  | 0.0747  | 73 | 1  | 1808 |  401318 |
 | HybridScore (GAN + EMA)   | 0.6967  | 0.0771  | 77 | 41 | 1804 |  401278 |
@@ -97,7 +97,7 @@ Start Jupyter Notebook and open the notebooks one-by-one.
 
 ## Detailed Results Section
 
-### 1. LSTM–GAN DR-Score Performance
+### 1. LSTM-GAN DR-Score Performance
 The DR-score captures short-window anomalous behavior using reconstruction error and discriminator realism.
 - **ROC AUC:** 0.6593  
 - **F1-score:** 0.0747  
@@ -145,8 +145,6 @@ Improvement highlights:
 The hybrid pipeline significantly enhances anomaly separability without compromising stability, delivering a more expressive unsupervised FDD system than DR-score alone.
 
 ---
-
-
 
 
 ## References

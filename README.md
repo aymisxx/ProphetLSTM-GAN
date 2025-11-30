@@ -54,7 +54,7 @@ ProphetLSTM-GAN/
 │   │
 │   └── processed/
 │
-├── models/                        # D & G SETUPS
+├── models/                        # Discriminator & Generator Setups
 └── results/
 ```
 
@@ -157,6 +157,7 @@ The hybrid pipeline significantly enhances anomaly separability without compromi
 ---
 
 ## License
+
 MIT License
 
 ---

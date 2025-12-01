@@ -66,7 +66,7 @@ ProphetLSTM-GAN/
 pip install -r requirements.txt
 ```
 
-Start Jupyter Notebook and open the notebooks one-by-one.
+Start Jupyter Notebook and open the notebooks one-by-one, 00, 01, and 02.
 
 ---
 

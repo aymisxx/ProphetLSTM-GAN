@@ -4,7 +4,7 @@ matplotlib
 scikit-learn
 scipy
 
-torch
+torch             # Prefer cuda-enabled torch if GPU privilege exists  
 torchvision
 torchaudio
 

@@ -1,0 +1,12 @@
+numpy
+pandas
+matplotlib
+scikit-learn
+scipy
+
+torch             # Prefer cuda-enabled torch if GPU privilege exists  
+torchvision       # Prefer cuda-enabled torch if GPU privilege exists
+torchaudio        # Prefer cuda-enabled torch if GPU privilege exists
+
+tqdm
+joblib

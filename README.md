@@ -110,7 +110,6 @@ The DR-score captures short-window anomalous behavior using reconstruction error
 
 This detector is extremely conservative (almost zero false alarms) but catches high-severity anomalies reliably.
 
-
 ### 2. Trend-Residual Score (EMA-Based)
 EMA trend residual captures slow drifts that GAN alone cannot detect.
 - **Window-level residual score aligned with X_test**
@@ -134,6 +133,12 @@ Improvement highlights:
 - **True anomalies detected:** +4  
 - **Recall improved from 3.88% → 4.09%**  
 - **Still extremely low FP rate (~0.01%)**
+
+### **Note on Improvement Magnitude**
+
+The absolute improvement in AUC (~+3.7%) may appear modest at first glance, but it should be interpreted in the context of the dataset characteristics. The anomaly class represents a very small fraction of the data (≈0.4–0.5%), resulting in an extremely imbalanced detection problem. In such settings, even small shifts in AUC can correspond to meaningful improvements in the ranking of rare anomaly events.
+
+Importantly, the hybrid score increases anomaly recall (TP: 73 → 77) while keeping the false-positive rate extremely low relative to the large normal class. This reflects the intended design goal of the hybrid scoring scheme: improving sensitivity to subtle drift-induced anomalies without significantly degrading precision.
 
 ### 4. Timeline Behavior
 - DR-score shows sharp spikes for high-severity anomalies  

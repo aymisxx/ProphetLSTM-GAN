@@ -100,30 +100,22 @@ $$
 
 This transforms long raw firing sequences into fixed-size temporal samples suitable for recurrent learning.
 
-### 3. Generator $G$
+### 3. Generator
 
-The generator maps a latent noise vector
-$$
-\mathbf{z} \sim \mathcal{N}(0, I), \qquad \mathbf{z} \in \mathbb{R}^{64}
-$$
-to a synthetic telemetry window.
+The generator maps a random latent noise vector to a synthetic telemetry window.
 
-The latent vector is repeated across 128 timesteps and passed through a stacked LSTM with:
-- hidden size $128$.
-- 2 layers.
+In this project:
+- latent dimension = 64.
+- sequence length = 128.
+- feature dimension = 4.
+- LSTM hidden size = 128.
+- number of LSTM layers = 2.
 
-At each timestep, the LSTM hidden state is projected to the 4 output features:
-$$
-\hat{\mathbf{x}}_t = W_o \mathbf{h}_t + \mathbf{b}_o,
-\qquad \hat{\mathbf{x}}_t \in \mathbb{R}^4.
-$$
+The latent vector is repeated across all 128 timesteps and passed through a stacked LSTM. At each timestep, the LSTM hidden state is projected to the 4 output features: `ton`, `thrust`, `mfr`, and `vl`.
 
-The full generator output is therefore
-$$
-G(\mathbf{z}) = \hat{W} \in \mathbb{R}^{128 \times 4}.
-$$
+As a result, the generator produces a full synthetic sequence of shape **(128, 4)**.
 
-No final `tanh` is applied, so the generator outputs directly in the same standardized space as the normalized training data.
+No final `tanh` activation is used, so the generator outputs remain in the same standardized feature space as the normalized training data.
 
 ### 4. Discriminator $D$
 

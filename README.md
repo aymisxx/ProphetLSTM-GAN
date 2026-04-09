@@ -53,24 +53,26 @@ The raw anomaly flag `anomaly_code` is **not** used as a supervised training tar
 
 ### 1. Normalization
 
-To make features comparable and anchor the model around healthy operating statistics, a `StandardScaler` is fitted using **normal samples only**. For each feature $j$,
+To make the sensor features comparable, each feature is standardized using statistics computed from **normal samples only**.
+
+For each feature $j$,
 $$
 \mu_j = \frac{1}{N}\sum_{i=1}^{N} x_{i,j},
 \qquad
 \sigma_j = \sqrt{\frac{1}{N}\sum_{i=1}^{N}(x_{i,j}-\mu_j)^2}
 $$
 
-and each feature is standardized as
+Each feature is then normalized as
 $$
-\tilde{x}_{t,j} = \frac{x_{t,j}-\mu_j}{\sigma_j}.
-$$
-
-Thus, the normalized timestep becomes
-$$
-\tilde{\mathbf{x}}_t \in \mathbb{R}^4.
+\tilde{x}_{t,j} = \frac{x_{t,j}-\mu_j}{\sigma_j}
 $$
 
-This ensures the model is trained in a normalized feature space centered on normal behavior.
+So the normalized timestep becomes
+$$
+\tilde{\mathbf{x}}_t \in \mathbb{R}^4
+$$
+
+This places all input features in a common standardized space and centers the model around normal operating behavior.
 
 ### 2. Sliding-Window Sequence Construction
 

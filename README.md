@@ -38,6 +38,212 @@ This shifts the project from a model reproduction to an **engineering-focused pr
 
 ---
 
+## Mathematical Model
+
+This project performs **unsupervised anomaly detection** on spacecraft thruster firing telemetry using an **LSTM-GAN**. Each timestep is represented by a 4-dimensional sensor vector:
+
+$$
+\mathbf{x}_t =
+\begin{bmatrix}
+\text{ton}_t & \text{thrust}_t & \text{mfr}_t & \text{vl}_t
+\end{bmatrix}^\top \in \mathbb{R}^4
+$$
+
+The raw anomaly flag `anomaly_code` is **not** used as a supervised training target for the GAN. Instead, the model learns the distribution of **normal engine behavior** and detects deviations from it.
+
+### 1. Normalization
+
+To make features comparable and anchor the model around healthy operating statistics, a `StandardScaler` is fitted using **normal samples only**. For each feature $j$,
+$$
+\mu_j = \frac{1}{N}\sum_{i=1}^{N} x_{i,j},
+\qquad
+\sigma_j = \sqrt{\frac{1}{N}\sum_{i=1}^{N}(x_{i,j}-\mu_j)^2}
+$$
+
+and each feature is standardized as
+$$
+\tilde{x}_{t,j} = \frac{x_{t,j}-\mu_j}{\sigma_j}.
+$$
+
+Thus, the normalized timestep becomes
+$$
+\tilde{\mathbf{x}}_t \in \mathbb{R}^4.
+$$
+
+This ensures the model is trained in a normalized feature space centered on normal behavior.
+
+### 2. Sliding-Window Sequence Construction
+
+Each normalized telemetry stream is converted into fixed-length overlapping windows for sequence modeling. With window length
+$L = 128$
+and stride
+$s = 5$.
+the $k$-th window is
+
+$$
+W_k =
+\begin{bmatrix}
+\tilde{\mathbf{x}}_{t_k} \\
+\tilde{\mathbf{x}}_{t_k+1} \\
+\vdots \\
+\tilde{\mathbf{x}}_{t_k+L-1}
+\end{bmatrix}
+\in \mathbb{R}^{128 \times 4},
+\qquad t_k = 1 + (k-1)s.
+$$
+
+These windows form the training, validation, and test tensors used by the GAN:
+
+$$
+X_{\text{train}} \in \mathbb{R}^{304080 \times 128 \times 4},
+\quad
+X_{\text{val}} \in \mathbb{R}^{76020 \times 128 \times 4},
+\quad
+X_{\text{test}} \in \mathbb{R}^{403200 \times 128 \times 4}.
+$$
+
+This transforms long raw firing sequences into fixed-size temporal samples suitable for recurrent learning.
+
+### 3. Generator $G$
+
+The generator maps a latent noise vector
+$$
+\mathbf{z} \sim \mathcal{N}(0, I), \qquad \mathbf{z} \in \mathbb{R}^{64}
+$$
+to a synthetic telemetry window.
+
+The latent vector is repeated across 128 timesteps and passed through a stacked LSTM with:
+- hidden size $128$.
+- 2 layers.
+
+At each timestep, the LSTM hidden state is projected to the 4 output features:
+$$
+\hat{\mathbf{x}}_t = W_o \mathbf{h}_t + \mathbf{b}_o,
+\qquad \hat{\mathbf{x}}_t \in \mathbb{R}^4.
+$$
+
+The full generator output is therefore
+$$
+G(\mathbf{z}) = \hat{W} \in \mathbb{R}^{128 \times 4}.
+$$
+
+No final `tanh` is applied, so the generator outputs directly in the same standardized space as the normalized training data.
+
+### 4. Discriminator $D$
+
+The discriminator receives a real or generated window
+
+$$
+W \in \mathbb{R}^{128 \times 4}
+$$
+
+and processes it with a stacked LSTM encoder. The final hidden state is passed through a small MLP to produce a scalar logit:
+
+$$
+D(W) \in \mathbb{R}.
+$$
+
+After sigmoid,
+
+$$
+p_{\text{real}}(W) = \sigma(D(W)),
+$$
+
+which is interpreted as the probability that the window looks like normal telemetry. A high value means the sequence appears normal; a low value means it looks suspicious. 
+
+### 5. GAN Training Objective
+
+The model is trained adversarially:
+
+- the discriminator learns to classify real windows as real and generated windows as fake.
+- the generator learns to produce windows that fool the discriminator.
+
+The discriminator loss is
+
+$$
+\mathcal{L}_D =
+\mathrm{BCE}(D(W_{\text{real}}),1) +
+\mathrm{BCE}(D(G(\mathbf{z})),0)
+$$
+
+and the generator loss is
+
+$$
+\mathcal{L}_G =
+\mathrm{BCE}(D(G(\mathbf{z})),1).
+$$
+
+In implementation, `BCEWithLogitsLoss` is used for numerical stability, and real labels are slightly smoothed during training.
+
+### 6. Anomaly Scoring
+
+After training, anomalies are detected using two complementary signals.
+
+#### (a) Discriminator-based score
+
+The discriminator anomaly score is
+
+$$
+s_D(W) = 1 - p_{\text{real}}(W)
+= 1 - \sigma(D(W)).
+$$
+
+A higher value means the discriminator considers the window less consistent with normal behavior.
+
+#### (b) GAN-style reconstruction error
+
+A latent vector is sampled, a synthetic window is generated, and its difference from the real window is measured using mean L1 error:
+
+$$
+s_R(W) =
+\frac{1}{128 \cdot 4}
+\sum_{t=1}^{128}\sum_{j=1}^{4}
+|W_{t,j} - G(\mathbf{z})_{t,j}|.
+$$
+
+Higher error means the generator struggles to mimic that window, which suggests abnormality. 
+
+### 7. Final DR-Score
+
+The final anomaly score combines both signals:
+
+$$
+\mathrm{DR}(W) = \alpha s_R(W) + (1-\alpha)s_D(W),
+$$
+
+with
+
+$$
+\alpha = 0.5.
+$$
+
+So the implemented score is
+
+$$
+\mathrm{DR}(W) =
+0.5\,s_R(W) + 0.5\,\big(1-\sigma(D(W))\big).
+$$
+
+Higher DR-score means a stronger deviation from learned normal thruster behavior. This score is then thresholded for anomaly classification and used for ROC, AUC, precision-recall, and F1 evaluation.
+
+### 8. End-to-End Pipeline
+
+The complete model pipeline is:
+
+$$
+\mathbf{x}_t \rightarrow \tilde{\mathbf{x}}_t \rightarrow W_k \rightarrow \{G,D\} \rightarrow s_R, s_D \rightarrow \mathrm{DR}(W).
+$$
+
+In words:
+
+1. raw telemetry is standardized using normal-only statistics.  
+2. fixed-length windows of shape $128 \times 4$ are created.  
+3. an LSTM-GAN learns the normal sequence distribution.  
+4. anomaly scores are computed from generator mismatch and discriminator suspicion.  
+5. both are fused into the final DR-score for detection.
+
+---
+
 ## Repository Structure
 
 ```
@@ -155,7 +361,7 @@ The hybrid pipeline significantly enhances anomaly separability without compromi
 ## References
 
 [1] L. Deng, Y. Cheng, and Y. Shi, “Fault Detection and Diagnosis for Liquid Rocket Engines Based on LSTM and GAN,” *Aerospace*, 2022.  
-[2] NASA Propulsion Test Telemetry Dataset (Monopropellant Thruster) — Dataset Context Documentation.  
+[2] NASA Propulsion Test Telemetry Dataset (Monopropellant Thruster) - Dataset Context Documentation.  
 [3] D. Li et al., “MAD-GAN: Multivariate Anomaly Detection for Time Series Data with GANs,” arXiv, 2019.  
 [4] Z. Niu, K. Yu, X. Wu, “LSTM-based VAE-GAN for Time-Series Anomaly Detection,” *Sensors*, 2020.
 

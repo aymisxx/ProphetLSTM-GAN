@@ -56,12 +56,13 @@ The raw anomaly flag `anomaly_code` is **not** used as a supervised training tar
 To make the sensor features comparable, each feature is standardized using statistics computed from **normal samples only**.
 
 For each feature, we compute:
-- the mean of that feature over normal samples
-- the standard deviation of that feature over normal samples
+
+- the mean of that feature over normal samples.
+- the standard deviation of that feature over normal samples.
 
 Each value is then normalized as:
 
-normalized value = (original value - feature mean) / feature standard deviation
+**normalized value = (original value - feature mean) / feature standard deviation**
 
 So, at each timestep, the input becomes a 4-dimensional normalized feature vector.
 
